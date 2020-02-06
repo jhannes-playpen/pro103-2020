@@ -1,56 +1,106 @@
 <html>
-    <script>
-        const productJSON = window.localStorage.getItem("products");
-        const products = productJSON ? JSON.parse(productJSON) : [];
+<head>
+<style>
+label { font-weight: bold }
+</style>
+</head>
+<body>
+<script>
+function renderProductList() {
+    const productList = JSON.parse(window.localStorage.getItem("productList")) || [];
+    const productListEl = document.getElementById("productList");
+    productListEl.innerHTML = "";
+    for (const product of productList) {
+        const productEl = document.createElement("div");
+        const { name, image, price, description } = product;
+        productEl.innerHTML = "<h4>" + name + "</h4>" +
+            (image ? "<div><img src='" + image + "' /></div>" : "") +
+            "<div>" + description + "</div>" +
+            "<div><small>Price: " + price + "</small></div>";
+        productListEl.appendChild(productEl);
+    }   
+}
 
-        function renderProducts(products) {
-            const productsEl = document.getElementById("products");
-            productsEl.innerHTML = "";
-            for (const product of products) {
-                const singleProductEl = document.createElement("div");
-                singleProductEl.innerText = product.productName + " (price: " + product.productPrice + ")";
-                productsEl.appendChild(singleProductEl);
-            }            
-        }
+function createNewProduct(event) {
+    event.preventDefault();
+ 
+    const name = document.querySelector("[name='name']").value;
+    const price = document.querySelector("[name='price']").value;
+    const description = document.querySelector("[name='description']").value;
+    const image = document.querySelector("[name='image']").dataset.image;
 
-        function submitNewProduct(event) {
-            event.preventDefault();
+    const product = {name, price, description, image};
 
-            const productName = document.querySelector("[name='productName']").value;
-            const productPrice = document.querySelector("[name='productPrice']").value;
+    const productList = JSON.parse(window.localStorage.getItem("productList")) || [];
+    productList.push(product);
+    window.localStorage.setItem("productList", JSON.stringify(productList));
+    renderProductList();
 
-            const product = {
-                productName,
-                productPrice
-            };
-            console.log("submit new product", product);
-            products.push(product);
+    event.target.reset();
+    const previewEl = document.getElementById("imagePreview");
+    previewEl.innerHTML = "";
+}
 
-            window.localStorage.setItem("products", JSON.stringify(products));
-            renderProducts(products);
-        }
 
-        window.addEventListener("storage", function(event) {
-            console.log("storage event");
-            console.log("onEvent storage", arguments);
-            if (event.key === "products") {
-                const productJSON = window.localStorage.getItem("products");
-                renderProducts(productJSON ? JSON.parse(productJSON) : []);
-            }
-        });
-    </script>
 
-    <h1>Webshop</h1>
+function handleFileSelect(event) {
+    function handleFileLoad(event) {
+        const previewEl = document.getElementById("imagePreview");
+        previewEl.innerHTML = "<img src='" + event.target.result + "' height='150px' />";
+        document.querySelector("[name='image']").dataset.image = event.target.result;
+    }
 
-    <form id="newProduct" onSubmit="submitNewProduct(event)">
-        <input type="text" name="productName" placeholder="Name"/>
-        <input type="text" name="productPrice" placeholder="Price"/>
-        <input type="submit"/>
-    </form>
+    const reader = new FileReader()
+    reader.onload = handleFileLoad;
+    reader.readAsDataURL(event.target.files[0])
+}
 
-    <div id="products"></div>
+</script>
 
-    <script>
-    renderProducts(products);
-    </script>
+<h1>Webshop</h1>
+
+
+<h2>Add new product</h2>
+
+<form onsubmit="createNewProduct(event)">
+    <div>
+        <label>Name:
+            <div><input name="name" placeholder="Product title to show in headlines" /></div>
+        </label>
+    </div>
+    <div>
+        <label>Price:
+            <div><input name="price" placeholder="10.99" /></div>
+        </label>
+    </div>
+    <div>
+        <label>Image:
+            <div><input name="image" type="file" onchange="handleFileSelect(event)" /></div>
+        </label>
+        <div id="imagePreview" />
+    </div>
+    <div>
+        <label>Description:
+            <div><textarea name="description" placeholder="A longer product description"></textarea></div>
+        </label>
+    </div>
+    <div>
+        <input type="submit" />
+    </div>
+</form>
+
+<h2>Our products</h2>
+
+<div id="productList"></div>
+
+<script>
+renderProductList();
+
+window.addEventListener("storage", function(event) {
+    if (event.key === "productList") {
+        renderProductList();
+    }
+});
+</script>
+</body>
 </html>
