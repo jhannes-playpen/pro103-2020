@@ -1,0 +1,53 @@
+<html>
+    <script>
+        const productJSON = window.localStorage.getItem("products");
+        const products = productJSON ? JSON.parse(productJSON) : [];
+
+        function renderProducts(products) {
+            const productsEl = document.getElementById("products");
+            productsEl.innerHTML = "";
+            for (const product of products) {
+                const singleProductEl = document.createElement("div");
+                singleProductEl.innerText = product.productName + " (price: " + product.productPrice + ")";
+                productsEl.appendChild(singleProductEl);
+            }            
+        }
+
+        function submitNewProduct(event) {
+            event.preventDefault();
+
+            const productName = document.querySelector("[name='productName']").value;
+            const productPrice = document.querySelector("[name='productPrice']").value;
+
+            const product = {
+                productName,
+                productPrice
+            };
+            console.log("submit new product", product);
+            products.push(product);
+
+            window.localStorage.setItem("products", JSON.stringify(products));
+            renderProducts(products);
+        }
+
+        window.addEventListener("storage", function(event) {
+            console.log("storage event");
+            console.log("onEvent storage", arguments);
+            if (event.key === "products") {
+                const productJSON = window.localStorage.getItem("products");
+                renderProducts(productJSON ? JSON.parse(productJSON) : []);
+            }
+        });
+    </script>
+    <form id="newProduct" onSubmit="submitNewProduct(event)">
+        <input type="text" name="productName" placeholder="Name"/>
+        <input type="text" name="productPrice" placeholder="Price"/>
+        <input type="submit"/>
+    </form>
+
+    <div id="products"></div>
+
+    <script>
+    renderProducts(products);
+    </script>
+</html>
